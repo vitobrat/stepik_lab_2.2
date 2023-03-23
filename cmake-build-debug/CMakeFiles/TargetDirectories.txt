@@ -1,0 +1,3 @@
+C:/FirstCursProgramm/C++/stepik_lab_2.2/cmake-build-debug/CMakeFiles/stepik_lab_2_2.dir
+C:/FirstCursProgramm/C++/stepik_lab_2.2/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/FirstCursProgramm/C++/stepik_lab_2.2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
