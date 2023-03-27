@@ -59,7 +59,7 @@ List *createList(unsigned N){
 
 List *createList(string str, int &N){
     auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    List *head = nullptr, *tail = nullptr, *cur;
+    List *head = nullptr, *tail = nullptr;
     istringstream iss(str);
     int num, count = 0;
     while (iss >> num) {
@@ -72,14 +72,20 @@ List *createList(string str, int &N){
         tail = head;
         count++;
     }
-    head->next = nullptr;
-    while(head->prev){
-        head = head->prev;
-    }
-    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    cout << "time spent to creat list in nanoseconds: " << end - start << "ns\n";
     N = count;
-    return head;
+    if(N>0) {
+        head->next = nullptr;
+        while (head->prev) {
+            head = head->prev;
+        }
+        auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        cout << "time spent to creat list in nanoseconds: " << end - start << "ns\n";
+
+        return head;
+    }else{
+        return nullptr;
+    }
 }
 
 List *listItem(List * Beg, unsigned int index) {
@@ -94,21 +100,25 @@ List *listItem(List * Beg, unsigned int index) {
 void addValueAtList(List * &listOfValue, int N){
     cout << "Input new value: ";
     int value = checkInput();
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     List *item = listItem(listOfValue, N - 1);
     List *addItem = new List;
     addItem->data = value;
     item->next = addItem;
     addItem->prev = item;
     addItem->next = nullptr;
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to add element in list in nanoseconds: " << end - start << "ns\n";
 }
 
 void changeValueAtList(List * &listOfValue, int N){
     cout << "Input 2 indexes you wanna change(by enter):";
     int index1 = checkInput();
     int index2 = checkInput();
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     if (!((index1 >= 1 && index1 <= N) && (index2 >= 1 && index2 <= N))){
         cout << "Wrong input! Try again.\n";
-        changeValueAtList(listOfValue, N);
+        return;
     }
     if(index1 == index2) return;
     index1--; index2--;
@@ -140,17 +150,17 @@ void changeValueAtList(List * &listOfValue, int N){
         item2->next = item1;
         return;
     }
-    // меняем местами указатели на предыдущий элемент
     List *help = item1->prev;
     item1->prev = item2->prev;
     item2->prev = help;
-    // меняем местами указатели на следующий элемент
     help = item1->next;
     item1->next = item2->next;
     item2->next = help;
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to change elements in list in nanoseconds: " << end - start << "ns\n";
 }
 
-void getValueAtList(List * &listOfValue){
+void getValueAtList(List * &listOfValue, int N){
     cout << "What type do you want to get element\n"<<
     "1)by value\n"
     "2)by index\n";
@@ -158,10 +168,13 @@ void getValueAtList(List * &listOfValue){
     bool flag = false;
     List *cur = listOfValue;
     type = checkInput();
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     switch (type) {
         case 1:
             cout << "Input value:";
             value = checkInput();
+            start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             while(cur){
                 if(cur->data == value){
                     flag = true;
@@ -176,21 +189,30 @@ void getValueAtList(List * &listOfValue){
             }else{
                 cout << "The list does not contain an element - " << value << "\n";
             }
+            end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            cout << "time spent to get element by value in list in nanoseconds: " << end - start << "ns\n";
             break;
         case 2:
             cout << "Input index:";
             index = checkInput();
+            while (!(index >= 1 && index <= N)){
+                cout << "Wrong input! Try again.\n";
+                index = checkInput();
+            }
+            start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             cur = listItem(listOfValue, index - 1);
             cout << "Value with index "<< index << " - " << cur->data << "\n";
+            end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            cout << "time spent to get element by index in list in nanoseconds: " << end - start << "ns\n";
             break;
         default:
             cout << "Wrong input! Try again.\n";
-            getValueAtList(listOfValue);
+            getValueAtList(listOfValue, N);
             break;
     }
 }
 
-void deleteValueAtList(List * &listOfValue){
+void deleteValueAtList(List * &listOfValue, int &N){
     cout << "What type do you want to delete element\n"<<
          "1)by value\n"
          "2)by index\n";
@@ -216,32 +238,40 @@ void deleteValueAtList(List * &listOfValue){
             break;
         default:
             cout << "Wrong input! Try again.\n";
-            getValueAtList(listOfValue);
+            deleteValueAtList(listOfValue, N);
             break;
     }
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     cur = listOfValue;
+    bool flag = false;
     while(cur){
         if (cur->data == value){
             if (cur->prev == nullptr){
                 listOfValue = cur->next;
-                cur->next->prev = nullptr;
+                if(cur->next != nullptr)cur->next->prev = nullptr;
                 delete cur;
+                flag = true;
                 cur = listOfValue;
             }else if(cur->next == nullptr){
-                cur->prev->next = 0;
+                if(cur->prev != nullptr) cur->prev->next = nullptr;
                 delete cur;
-                return;
             }else{
                 cur->prev->next = cur->next;
                 cur->next->prev = cur->prev;
                 delete cur;
-                return;
             }
+            break;
         }
         else{
             cur = cur->next;
         }
     }
+    if(!flag){
+        return;
+    }
+    N--;
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to delete element in list in nanoseconds: " << end - start << "ns\n";
 }
 
 void function1(List * &listOfValue, int &N){
@@ -296,11 +326,10 @@ void function2(List * &listOfValue, int &N){
             changeValueAtList(listOfValue, N);
             break;
         case 3:
-            getValueAtList(listOfValue);
+            getValueAtList(listOfValue, N);
             break;
         case 4:
-            deleteValueAtList(listOfValue);
-            N--;
+            deleteValueAtList(listOfValue,N);
             break;
         default:
             cout << "Wrong input! Try again.\n";
@@ -310,15 +339,23 @@ void function2(List * &listOfValue, int &N){
 
 int main() {
     int inputCycle = 1, N = 0;
-    List *listOfValue, *cur;
+    List *listOfValue = nullptr;
     while (inputCycle){
         function1(listOfValue, N);
+        while (listOfValue == nullptr){
+            cout << "The list is empty, creat new\n";
+            function1(listOfValue, N);
+        }
         printList(listOfValue);
         cout << "\nDo you want to try again? (0 - no, 1 - yes): ";
         inputCycle = checkInput();
     }
     inputCycle = 1;
     while (inputCycle){
+        while (listOfValue == nullptr){
+            cout << "The list is empty\n";
+            function1(listOfValue, N);
+        }
         function2(listOfValue, N);
         printList(listOfValue);
         cout << "\nDo you want to try again? (0 - no, 1 - yes): ";
