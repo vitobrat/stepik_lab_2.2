@@ -38,6 +38,13 @@ void printList(List * cur){
     }
 }
 
+void printArr(int * arr, int N){
+    cout << "Array: ";
+    for(int *i = arr; i != arr + N; i++){
+        cout << *i << " ";
+    }
+}
+
 List *createList(unsigned N){
     auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     List *head = nullptr, *tail = nullptr;
@@ -88,6 +95,34 @@ List *createList(string str, int &N){
     }
 }
 
+int *creatArr(unsigned N){
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    int *arr = new int[N];
+    srand(time(NULL));
+    for (int i = N - 1; i >= 0; i--){
+        arr[i] = rand() % 100;
+    }
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to creat array in nanoseconds: " << end - start << "ns\n";
+    return arr;
+}
+
+int *creatArr(string str, int N){
+    if(N == 0) return nullptr;
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    int *arr = new int[N];
+    istringstream iss(str);
+    int num, i = 0;
+    while (iss >> num) {
+        arr[i] = num;
+        i++;
+    }
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to creat array in nanoseconds: " << end - start << "ns\n";
+    return arr;
+}
+
 List *listItem(List * Beg, unsigned int index) {
     int p = 0;
     while(p != index){
@@ -97,25 +132,67 @@ List *listItem(List * Beg, unsigned int index) {
     return Beg;
 }
 
-void addValueAtList(List * &listOfValue, int N){
-    cout << "Input new value: ";
-    int value = checkInput();
-    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    List *item = listItem(listOfValue, N - 1);
-    List *addItem = new List;
-    addItem->data = value;
-    item->next = addItem;
-    addItem->prev = item;
-    addItem->next = nullptr;
-    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    cout << "time spent to add element in list in nanoseconds: " << end - start << "ns\n";
+void addValueAtArr(int * &arr, int N, int index, int value){
+    int *arr1 = new int[N + 1];
+    for(int i = 0, j = 0; i < N + 1; i++, j++){
+        if(i == index - 1){
+            arr1[i] = value;
+            j--;
+        }else{
+            arr1[i] = arr[j];
+        }
+
+    }
+    delete []arr;
+    arr = arr1;
 }
 
-void changeValueAtList(List * &listOfValue, int N){
+void addValueAtList(List * &listOfValue, int * &arr,  int &N){
+    cout << "Input new index: ";
+    int index = checkInput();
+    if (!(index >= 1 && index <= N + 1)){
+        cout << "Wrong input! Try again.\n";
+        return;
+    }
+    cout << "\nInput new value: ";
+    int value = checkInput();
+    List *addItem = new List;
+    addItem->data = value;
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    addValueAtArr(arr, N, index, value);
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to add element in array in nanoseconds: " << end - start << "ns\n";
+    start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    if(index > N){
+        List *item = listItem(listOfValue, N - 1);
+        item->next = addItem;
+        addItem->prev = item;
+        addItem->next = nullptr;
+    }else if(index == 1){
+        listOfValue->prev = addItem;
+        addItem->next = listOfValue;
+        addItem->prev = nullptr;
+        listOfValue = addItem;
+    }else{
+        List *item = listItem(listOfValue, index - 1);
+        addItem->next = item;
+        addItem->prev = item->prev;
+        item->prev->next = addItem;
+        item->prev = addItem;
+    }
+    end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to add element in list in nanoseconds: " << end - start << "ns\n";
+    N++;
+}
+
+void changeValueAtArray(int * &arr, int index1, int index2){
+    swap(arr[index2], arr[index1]);
+}
+
+void changeValueAtList(List * &listOfValue, int * &arr, int N){
     cout << "Input 2 indexes you wanna change(by enter):";
     int index1 = checkInput();
     int index2 = checkInput();
-    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     if (!((index1 >= 1 && index1 <= N) && (index2 >= 1 && index2 <= N))){
         cout << "Wrong input! Try again.\n";
         return;
@@ -125,10 +202,13 @@ void changeValueAtList(List * &listOfValue, int N){
     if(index1 > index2){
         swap(index1, index2);
     }
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    changeValueAtArray(arr,  index1, index2);
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to change element in array in nanoseconds: " << end - start << "ns\n";
+    start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     List *item1 = listItem(listOfValue, index1);
     List *item2 = listItem(listOfValue, index2);
-
-
     if (item1->prev != nullptr) {
         item1->prev->next = item2;
     }else{
@@ -148,6 +228,8 @@ void changeValueAtList(List * &listOfValue, int N){
         item1->prev = item2;
         item1->next = item2->next;
         item2->next = item1;
+        end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        cout << "time spent to change elements in list in nanoseconds: " << end - start << "ns\n";
         return;
     }
     List *help = item1->prev;
@@ -156,11 +238,32 @@ void changeValueAtList(List * &listOfValue, int N){
     help = item1->next;
     item1->next = item2->next;
     item2->next = help;
-    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     cout << "time spent to change elements in list in nanoseconds: " << end - start << "ns\n";
 }
 
-void getValueAtList(List * &listOfValue, int N){
+void getValueAtArrByIndex(int * &arr, int index){
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "Value with index "<< index << " - " << arr[index - 1] << "\n";
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to get element in array in nanoseconds: " << end - start << "ns\n";
+}
+
+void getValueAtArrByValue(int * &arr, int N, int value){
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    for(int i = 0; i < N; i++){
+        if(arr[i] == value){
+            cout << "The array contain an element - " << value << "(index - " << i+1 << ")" << "\n";
+            auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            cout << "time spent to get element in array in nanoseconds: " << end - start << "ns\n";
+            return;
+        }
+    }
+    cout << "The array does not contain an element - " << value << "\n";
+
+}
+
+void getValueAtList(List * &listOfValue, int * &arr,  int N){
     cout << "What type do you want to get element\n"<<
     "1)by value\n"
     "2)by index\n";
@@ -174,6 +277,7 @@ void getValueAtList(List * &listOfValue, int N){
         case 1:
             cout << "Input value:";
             value = checkInput();
+            getValueAtArrByValue(arr, N, value);
             start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             while(cur){
                 if(cur->data == value){
@@ -199,6 +303,7 @@ void getValueAtList(List * &listOfValue, int N){
                 cout << "Wrong input! Try again.\n";
                 index = checkInput();
             }
+            getValueAtArrByIndex(arr, index);
             start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             cur = listItem(listOfValue, index - 1);
             cout << "Value with index "<< index << " - " << cur->data << "\n";
@@ -207,12 +312,25 @@ void getValueAtList(List * &listOfValue, int N){
             break;
         default:
             cout << "Wrong input! Try again.\n";
-            getValueAtList(listOfValue, N);
+            getValueAtList(listOfValue, arr, N);
             break;
     }
 }
 
-void deleteValueAtList(List * &listOfValue, int &N){
+void deleteValueAtArr(int * &arr, int N, int value){
+    int *arr1 = new int[N - 1];
+    for(int i = 0, j = 0; i < N; i++, j++){
+        if(arr[i] != value){
+            arr1[j] = arr[i];
+        }else{
+            j--;
+        }
+    }
+    delete []arr;
+    arr = arr1;
+}
+
+void deleteValueAtList(List * &listOfValue, int * &arr, int &N){
     cout << "What type do you want to delete element\n"<<
          "1)by value\n"
          "2)by index\n";
@@ -227,6 +345,10 @@ void deleteValueAtList(List * &listOfValue, int &N){
         case 2:
             cout << "Input index:";
             index = checkInput();
+            while (!(index >= 1 && index <= N)){
+                cout << "Wrong input! Try again.\n";
+                index = checkInput();
+            }
             while(cur){
                 if(count == index - 1){
                     value = cur->data;
@@ -238,7 +360,7 @@ void deleteValueAtList(List * &listOfValue, int &N){
             break;
         default:
             cout << "Wrong input! Try again.\n";
-            deleteValueAtList(listOfValue, N);
+            deleteValueAtList(listOfValue, arr, N);
             break;
     }
     auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -246,12 +368,11 @@ void deleteValueAtList(List * &listOfValue, int &N){
     bool flag = false;
     while(cur){
         if (cur->data == value){
+            flag = true;
             if (cur->prev == nullptr){
                 listOfValue = cur->next;
                 if(cur->next != nullptr)cur->next->prev = nullptr;
                 delete cur;
-                flag = true;
-                cur = listOfValue;
             }else if(cur->next == nullptr){
                 if(cur->prev != nullptr) cur->prev->next = nullptr;
                 delete cur;
@@ -269,12 +390,26 @@ void deleteValueAtList(List * &listOfValue, int &N){
     if(!flag){
         return;
     }
-    N--;
     auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     cout << "time spent to delete element in list in nanoseconds: " << end - start << "ns\n";
+    start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    deleteValueAtArr(arr, N, value);
+    end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "time spent to delete element in array in nanoseconds: " << end - start << "ns\n";
+    N--;
 }
 
-void function1(List * &listOfValue, int &N){
+void deleteList ( List * &listOfValue ){
+    List *Next;
+    while ( listOfValue )
+    {
+        Next = listOfValue->next;
+        delete listOfValue;
+        listOfValue = Next;
+    }
+}
+
+void function1(List * &listOfValue, int * &arr, int &N){
     cout << "Which type of input do you prefer(1 - random, 2 - ourselves): ";
     int inputType = checkInput();
     int sizeList;
@@ -284,22 +419,24 @@ void function1(List * &listOfValue, int &N){
         sizeList = checkInput();
         if (sizeList <= 0){
             cout << "Wrong input! Try again.\n";
-            function1(listOfValue, N);
+            function1(listOfValue, arr, N);
         }
-        listOfValue = createList(sizeList);
         N = sizeList;
+        listOfValue = createList(N);
+        arr = creatArr(N);
     }else if(inputType == 2){
         cout << "Input list: \n";
         getLine(stringList);
         listOfValue = createList(stringList, N);
+        arr = creatArr(stringList, N);
     }else{
         cout << "Wrong input! Try again.\n";
-        function1(listOfValue, N);
+        function1(listOfValue, arr, N);
     }
 
 }
 
-void function2(List * &listOfValue, int &N){
+void function2(List * &listOfValue, int * &arr,  int &N){
     cout << "List size - " << N <<"\n";
     cout << "Which operation do you want to do?\n";
     int inputType = 0;
@@ -319,34 +456,36 @@ void function2(List * &listOfValue, int &N){
     }
     switch (inputType) {
         case 1:
-            addValueAtList(listOfValue,N);
-            N++;
+            addValueAtList(listOfValue, arr, N);
             break;
         case 2:
-            changeValueAtList(listOfValue, N);
+            changeValueAtList(listOfValue, arr, N);
             break;
         case 3:
-            getValueAtList(listOfValue, N);
+            getValueAtList(listOfValue, arr, N);
             break;
         case 4:
-            deleteValueAtList(listOfValue,N);
+            deleteValueAtList(listOfValue, arr, N);
             break;
         default:
             cout << "Wrong input! Try again.\n";
-            function2(listOfValue, N);
+            function2(listOfValue, arr, N);
     }
 }
 
 int main() {
     int inputCycle = 1, N = 0;
+    int *arr = nullptr;
     List *listOfValue = nullptr;
     while (inputCycle){
-        function1(listOfValue, N);
+        function1(listOfValue, arr, N);
         while (listOfValue == nullptr){
             cout << "The list is empty, creat new\n";
-            function1(listOfValue, N);
+            function1(listOfValue,arr, N);
         }
         printList(listOfValue);
+        cout <<"\n";
+        printArr(arr, N);
         cout << "\nDo you want to try again? (0 - no, 1 - yes): ";
         inputCycle = checkInput();
     }
@@ -354,12 +493,16 @@ int main() {
     while (inputCycle){
         while (listOfValue == nullptr){
             cout << "The list is empty\n";
-            function1(listOfValue, N);
+            function1(listOfValue,arr, N);
         }
-        function2(listOfValue, N);
+        function2(listOfValue, arr, N);
         printList(listOfValue);
+        cout <<"\n";
+        printArr(arr, N);
         cout << "\nDo you want to try again? (0 - no, 1 - yes): ";
         inputCycle = checkInput();
     }
+    delete []arr;
+    deleteList(listOfValue);
     return 0;
 }
