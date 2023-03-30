@@ -45,6 +45,56 @@ void printArr(int * arr, int N){
     }
 }
 
+void dopExerciseFunction(List * &listOfValue, int * &arr, int &N){
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    int count = 0;
+    for(int i = 0; i < N; i++){
+        if (arr[i] % 2 != 0) count++;
+    }
+    int *arr1 = new int[N - count];
+    for(int i = 0, j = 0; i < N; i++, j++){
+        if(arr[i] % 2 != 0){
+            j--;
+        }else{
+            arr1[j] = arr[i];
+        }
+    }
+    N -= count;
+    delete []arr;
+    arr = arr1;
+    auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "\ntime spent to delete odd elements in array in nanoseconds: " << end - start << "ns\n";
+    printArr(arr, N);
+    start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    List *cur = listOfValue, *help = nullptr;
+    while(cur){
+        if (cur->data % 2 != 0){
+            if (cur->prev == nullptr){
+                listOfValue = cur->next;
+                if(cur->next != nullptr)cur->next->prev = nullptr;
+                delete cur;
+                cur = listOfValue;
+            }else if(cur->next == nullptr){
+                help = cur->next;
+                if(cur->prev != nullptr) cur->prev->next = nullptr;
+                delete cur;
+                cur = help;
+            }else{
+                help = cur->next;
+                cur->prev->next = cur->next;
+                cur->next->prev = cur->prev;
+                delete cur;
+                cur = help;
+            }
+        }else{
+            cur = cur->next;
+        }
+    }
+    end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    cout << "\ntime spent to delete odd elements in list in nanoseconds: " << end - start << "ns\n";
+    printList(listOfValue);
+}
+
 List *createList(unsigned N){
     auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     List *head = nullptr, *tail = nullptr;
@@ -317,13 +367,15 @@ void getValueAtList(List * &listOfValue, int * &arr,  int N){
     }
 }
 
-void deleteValueAtArr(int * &arr, int N, int value){
+void deleteValueAtArr(int * &arr, int N, int value, int type){
     int *arr1 = new int[N - 1];
+    bool flag = true;
     for(int i = 0, j = 0; i < N; i++, j++){
-        if(arr[i] != value){
-            arr1[j] = arr[i];
-        }else{
+        if(arr[i] == value && flag){
             j--;
+            if(type == 2) flag = false;
+        }else{
+            arr1[j] = arr[i];
         }
     }
     delete []arr;
@@ -363,9 +415,11 @@ void deleteValueAtList(List * &listOfValue, int * &arr, int &N){
             deleteValueAtList(listOfValue, arr, N);
             break;
     }
-    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    count = 0;
     cur = listOfValue;
+    List *help = nullptr;
     bool flag = false;
+    auto start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     while(cur){
         if (cur->data == value){
             flag = true;
@@ -373,17 +427,22 @@ void deleteValueAtList(List * &listOfValue, int * &arr, int &N){
                 listOfValue = cur->next;
                 if(cur->next != nullptr)cur->next->prev = nullptr;
                 delete cur;
+                cur = listOfValue;
             }else if(cur->next == nullptr){
+                help = cur->next;
                 if(cur->prev != nullptr) cur->prev->next = nullptr;
                 delete cur;
+                cur = help;
             }else{
+                help = cur->next;
                 cur->prev->next = cur->next;
                 cur->next->prev = cur->prev;
                 delete cur;
+                cur = help;
             }
-            break;
-        }
-        else{
+            count++;
+            if(type == 2) break;
+        }else{
             cur = cur->next;
         }
     }
@@ -393,10 +452,10 @@ void deleteValueAtList(List * &listOfValue, int * &arr, int &N){
     auto end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     cout << "time spent to delete element in list in nanoseconds: " << end - start << "ns\n";
     start = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    deleteValueAtArr(arr, N, value);
+    deleteValueAtArr(arr, N, value, type);
     end = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     cout << "time spent to delete element in array in nanoseconds: " << end - start << "ns\n";
-    N--;
+    N -= count;
 }
 
 void deleteList ( List * &listOfValue ){
@@ -489,10 +548,13 @@ int main() {
         cout << "\nDo you want to try again? (0 - no, 1 - yes): ";
         inputCycle = checkInput();
     }
+    cout << "Do an extra exercise?(0 - no; else - yes): ";
+    int dopExercise = checkInput();
+    if(dopExercise) dopExerciseFunction(listOfValue, arr, N);
     inputCycle = 1;
     while (inputCycle){
         while (listOfValue == nullptr){
-            cout << "The list is empty\n";
+            cout << "\nThe list is empty\n";
             function1(listOfValue,arr, N);
         }
         function2(listOfValue, arr, N);
